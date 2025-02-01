@@ -1,4 +1,4 @@
-<?php namespace _\plugin\installer;
+<?php namespace _\plugin\package\installer;
 
 final class github {
         
@@ -11,18 +11,18 @@ final class github {
     public function enable($enable = true){
         static $fn = null;
         $fn OR $fn = function($n){
-            if(\str_starts_with($n,'zzz_github__')){
-                $plugin_class = \strtok($n,'\\');
-                $plugin_rest = \str_replace('\\','/', \strtok(''));
-                $plugin_version = \_\plugin::version_of($plugin_class) ?: 'main';
+            if(\str_starts_with($n,'pkg_github__')){
+                $pkg_class = \strtok($n,'\\');
+                $plugin_slug = \str_replace('\\','/', \strtok(''));
+                $pkg_version = \_\plugin\package::version_of($pkg_class) ?: 'main';
                 if(
-                    ($f = \stream_resolve_include_path(($p = "{$plugin_class}/{$plugin_version}/{$plugin_rest}")."/-#.php"))
+                    ($f = \stream_resolve_include_path(($p = "{$pkg_class}/{$pkg_version}/{$plugin_slug}")."/-#.php"))
                     || ($f = \stream_resolve_include_path("{$p}-#.php"))
                 ){
                     include $f;
-                } else if(!\is_dir($f = \stream_resolve_include_path("{$plugin_class}/{$plugin_version}"))){
-                    $this->install_from_github($plugin_class, $plugin_version);
-                    \_\plugin::version_of($plugin_class, $plugin_version);
+                } else if(!\is_dir($f = \stream_resolve_include_path("{$pkg_class}/{$pkg_version}"))){
+                    $this->install_from_github($pkg_class, $pkg_version);
+                    \_\plugin\package::version_of($pkg_class, $pkg_version);
                     if(
                         ($f = \stream_resolve_include_path("{$p}/-#.php"))
                         || ($f = \stream_resolve_include_path("{$p}-#.php"))
@@ -39,11 +39,11 @@ final class github {
         }
     }
     
-    private function install_from_github($plugin_class, $plugin_version){
-        if(!\str_starts_with($plugin_class,'zzz_github__')){
+    private function install_from_github($pkg_class, $pkg_version){
+        if(!\str_starts_with($pkg_class,'pkg_github__')){
             return null;
         }
-        if(\count($slug = \explode('__', $plugin_class)) !== 3){
+        if(\count($slug = \explode('__', $pkg_class)) !== 3){
             return null;
         }
         
@@ -51,17 +51,17 @@ final class github {
         $lib_dir = \_\LIB_DIR;
         $seg_a = \str_replace('_','-',$slug[1]);
         $seg_b = \str_replace('_','-',$slug[2]);
-        $repo_url = "https://github.com/{$seg_a}/zzz-{$seg_b}.git";
+        $repo_url = "https://github.com/{$seg_a}/pkg-{$seg_b}.git";
 
-        $plugin_dir = "{$lib_dir}/{$plugin_class}";
+        $pkg_dir = "{$lib_dir}/{$pkg_class}";
         
-        $repo_branch = $plugin_version;
-        $repo_path = "{$plugin_class}/{$repo_branch}";
+        $repo_branch = $pkg_version;
+        $repo_path = "{$pkg_class}/{$repo_branch}";
         $repo_dir = "{$lib_dir}/{$repo_path}";
         
-        $plugin_workspace_file = "{$plugin_dir}/_.code-workspace";
-        $plugin_info_file = "{$plugin_dir}/.info.json";
-        $plugin_type_file = "{$plugin_dir}/-#.php";
+        $pkg_workspace_file = "{$pkg_dir}/_.code-workspace";
+        $pkg_info_file = "{$pkg_dir}/.info.json";
+        $pkg_type_file = "{$pkg_dir}/-#.php";
         //\_\console\logger__set(function(){ });
         //\_\console\tracer__set(\_\f($plugin_trace_file)));
         \_\prtj(\get_defined_vars());
@@ -85,7 +85,7 @@ final class github {
         // Run the git clone command
         $cloneCommand = sprintf(
             'git clone --branch %s --depth 1 %s %s 2>&1', 
-            \escapeshellarg($plugin_version), 
+            \escapeshellarg($pkg_version), 
             \escapeshellarg($repo_url), 
             \escapeshellarg($repo_dir)
         );
@@ -117,28 +117,28 @@ final class github {
         }
                 
         
-        \file_exists($plugin_type_file) OR \file_put_contents($plugin_type_file, <<<PHP
+        \file_exists($pkg_type_file) OR \file_put_contents($pkg_type_file, <<<PHP
         <?php 
         
-        class {$plugin_class} extends \\_\\plugin\\__b {
+        class {$pkg_class} extends \\_\\plugin\\package\\__b {
         
         }
         PHP);
-        include $plugin_type_file;
+        include $pkg_type_file;
         
-        \file_exists($plugin_info_file) OR \file_put_contents(
-            $plugin_info_file, 
+        \file_exists($pkg_info_file) OR \file_put_contents(
+            $pkg_info_file, 
             \json_encode([
                 'repo_url' => $repo_url,
             ], \JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
         
         
-        \file_exists($plugin_workspace_file) OR \file_put_contents($plugin_workspace_file, <<<TXT
+        \file_exists($pkg_workspace_file) OR \file_put_contents($pkg_workspace_file, <<<TXT
         {
             "folders": [
                 {
-                    "name": "--plugin--",
+                    "name": "--package--",
                     "path": "."
                 },
                 {
@@ -151,7 +151,7 @@ final class github {
                 }
             ],
             "settings": {
-                "window.title": "[ {$plugin_class} ] / \${folderName} ",
+                "window.title": "[ {$pkg_class} ] / \${folderName} ",
                 // "files.exclude": {
                 // 	"**/---": true,
                 // 	//"**/.ach/**": true,
@@ -175,12 +175,12 @@ final class github {
             
         if(0){
             // Ensure the file exists before attempting to open it
-            if (!file_exists($plugin_workspace_file)) {
-                die("Workspace file does not exist: $plugin_workspace_file");
+            if (!file_exists($pkg_workspace_file)) {
+                die("Workspace file does not exist: $pkg_workspace_file");
             }
             
             // Command to open the workspace file in VS Code
-            $command = sprintf('code %s 2>&1', escapeshellarg($plugin_workspace_file));
+            $command = sprintf('code %s 2>&1', escapeshellarg($pkg_workspace_file));
             
             // Execute the command
             exec($command, $output, $returnCode);
