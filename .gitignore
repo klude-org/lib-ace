@@ -1,0 +1,6 @@
+/pkg_*
+/vendor
+/.local
+/.local-*
+**/.local
+**/.local-*
