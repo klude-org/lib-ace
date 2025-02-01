@@ -92,7 +92,9 @@ try {
         );
     });
     
-    \class_exists(\_\plugin\installer\github::class) AND \_\plugin\installer\github::_();    
+    \class_exists(\_\plugin\package\installer\github::class) 
+        AND \_\plugin\package\installer\github::_()
+    ;    
     
     $_REQUEST = (function(){
         $offset = 1;
