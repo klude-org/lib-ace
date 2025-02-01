@@ -1,2 +1,3 @@
 @echo off
-git fetch origin
+git fetch
+git pull
